@@ -1,0 +1,137 @@
+@startuml
+' Diagrama de classes — Gerenciador de Treinos (nível 1)
+' Para editar: cole este texto em https://www.plantuml.com/plantuml
+
+skinparam classAttributeIconSize 0
+hide empty members
+
+abstract class Pessoa {
+  - nome: str
+  - cpf: str
+  - idade: int
+  + {abstract} apresentar(): str
+}
+
+class Aluno {
+  - peso_kg: float
+  - altura_m: float
+  + fichas: list[FichaTreino]
+  + sessoes: list[SessaoTreino]
+  + calcular_imc(): float
+  + adicionar_ficha(ficha)
+  + remover_ficha(nome)
+  + buscar_ficha(nome): FichaTreino
+  + registrar_sessao(sessao)
+  + apresentar(): str
+}
+
+class Instrutor {
+  - cref: str
+  + alunos: list[Aluno]
+  + vincular_aluno(aluno)
+  + desvincular_aluno(cpf)
+  + buscar_aluno(cpf): Aluno
+  + apresentar(): str
+}
+
+abstract class Exercicio {
+  + nome: str
+  + grupo_muscular: str
+  + {abstract} calcular_volume(): float
+  + {abstract} descricao(): str
+}
+
+class ExercicioMusculacao {
+  + series: int
+  + repeticoes: int
+  + carga_kg: float
+  + calcular_volume(): float
+  + descricao(): str
+}
+
+class ExercicioCardio {
+  + duracao_min: float
+  + distancia_km: float
+  + calcular_volume(): float
+  + descricao(): str
+}
+
+class ExercicioIsometrico {
+  + series: int
+  + tempo_s: float
+  + calcular_volume(): float
+  + descricao(): str
+}
+
+class FichaTreino {
+  + nome: str
+  - _exercicios: list[Exercicio]
+  + adicionar_musculacao(...): ExercicioMusculacao
+  + adicionar_cardio(...): ExercicioCardio
+  + adicionar_isometrico(...): ExercicioIsometrico
+  + remover_exercicio(nome)
+  + buscar_exercicio(nome): Exercicio
+  + calcular_volume_total(): float
+  + descricao(): str
+}
+
+class SessaoTreino {
+  + data: date
+  + ficha: FichaTreino
+  + duracao_min: float
+  + observacao: str
+  - _registros: list[RegistroExercicio]
+  + registrar_exercicio(nome, series, repeticoes, carga_kg): RegistroExercicio
+  + calcular_volume_total(): float
+  + resumo(): str
+}
+
+class RegistroExercicio {
+  + exercicio: Exercicio
+  + series: int
+  + repeticoes: int
+  + carga_kg: float
+  + calcular_volume(): float
+  + descricao(): str
+}
+
+class RelatorioEvolucao {
+  + evolucao_carga(sessoes, nome_exercicio): list
+  + variacao_carga(sessoes, nome_exercicio): float
+  + volume_por_semana(sessoes): dict
+  + classificar_imc(aluno): tuple
+}
+
+' Herança
+Pessoa <|-- Aluno
+Pessoa <|-- Instrutor
+Exercicio <|-- ExercicioMusculacao
+Exercicio <|-- ExercicioCardio
+Exercicio <|-- ExercicioIsometrico
+
+' Composição
+FichaTreino *-- "0..*" Exercicio : contém
+SessaoTreino *-- "0..*" RegistroExercicio : contém
+
+' Associação
+Instrutor "0..1" --> "0..*" Aluno : acompanha
+Aluno "1" --> "0..*" FichaTreino : tem
+Aluno "1" --> "0..*" SessaoTreino : fez
+SessaoTreino "0..*" --> "1" FichaTreino : realizou
+RegistroExercicio "0..*" --> "1" Exercicio : refere-se a
+
+' Dependência
+RelatorioEvolucao ..> SessaoTreino : usa
+RelatorioEvolucao ..> Aluno : usa
+
+note bottom of Exercicio
+  Polimorfismo: cada subclasse
+  sobrescreve calcular_volume()
+  e descricao().
+end note
+
+note top of Pessoa
+  Polimorfismo: Aluno e Instrutor
+  sobrescrevem apresentar().
+end note
+@enduml

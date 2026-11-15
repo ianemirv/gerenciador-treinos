@@ -18,8 +18,8 @@ class RegistroExercicio:
         return self.series * self.repeticoes * self.carga_kg
 
     def descricao(self):
-        return (f"{self.exercicio.nome}: {self.series}x{self.repeticoes} "
-                f"com {self.carga_kg:g} kg")
+        # POLIMORFISMO: cada tipo de exercício sabe descrever o próprio registro.
+        return self.exercicio.descrever_registro(self.series, self.repeticoes, self.carga_kg)
 
 
 class SessaoTreino:

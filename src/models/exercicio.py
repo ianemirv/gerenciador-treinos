@@ -20,6 +20,13 @@ class Exercicio(ABC):
     def descricao(self):
         """Texto curto que descreve o exercício (POLIMORFISMO)."""
 
+    def descrever_registro(self, series, repeticoes, carga_kg):
+        """Como mostrar o que foi feito numa sessão (POLIMORFISMO).
+
+        Padrão da musculação; cardio e isométrico sobrescrevem.
+        """
+        return f"{self.nome}: {series}x{repeticoes} com {carga_kg:g} kg"
+
     def __str__(self):
         return self.descricao()
 
@@ -58,6 +65,10 @@ class ExercicioCardio(Exercicio):
             texto += f", {self.distancia_km:g} km"
         return texto
 
+    def descrever_registro(self, series, repeticoes, carga_kg):
+        # Na sessão, o cardio guarda os minutos feitos em "repeticoes".
+        return f"{self.nome}: {repeticoes} min"
+
 
 class ExercicioIsometrico(Exercicio):
     """Exercício parado, como a prancha. Volume = séries × tempo (s)."""
@@ -73,3 +84,7 @@ class ExercicioIsometrico(Exercicio):
     def descricao(self):
         return (f"{self.nome} ({self.grupo_muscular}): "
                 f"{self.series}x{self.tempo_s:g} s")
+
+    def descrever_registro(self, series, repeticoes, carga_kg):
+        # Na sessão, o isométrico guarda os segundos de cada série em "repeticoes".
+        return f"{self.nome}: {series}x{repeticoes} s"

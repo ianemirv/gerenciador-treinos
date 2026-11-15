@@ -70,3 +70,12 @@ def test_nome_vazio_invalido():
 def test_cardio_duracao_invalida():
     with pytest.raises(ValueError):
         ExercicioCardio("Esteira", 0)
+
+
+def test_polimorfismo_descrever_registro():
+    # Cada tipo descreve do seu jeito o que foi feito numa sessão.
+    assert ExercicioMusculacao("Supino", "Peito", 4, 10, 40).descrever_registro(4, 8, 45) == \
+        "Supino: 4x8 com 45 kg"
+    assert ExercicioCardio("Esteira", 30).descrever_registro(1, 25, 0) == "Esteira: 25 min"
+    assert ExercicioIsometrico("Prancha", "Abdômen", 3, 45).descrever_registro(3, 40, 0) == \
+        "Prancha: 3x40 s"

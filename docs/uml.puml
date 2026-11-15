@@ -39,6 +39,7 @@ abstract class Exercicio {
   + grupo_muscular: str
   + {abstract} calcular_volume(): float
   + {abstract} descricao(): str
+  + descrever_registro(series, repeticoes, carga_kg): str
 }
 
 class ExercicioMusculacao {
@@ -54,6 +55,7 @@ class ExercicioCardio {
   + distancia_km: float
   + calcular_volume(): float
   + descricao(): str
+  + descrever_registro(series, repeticoes, carga_kg): str
 }
 
 class ExercicioIsometrico {
@@ -61,6 +63,7 @@ class ExercicioIsometrico {
   + tempo_s: float
   + calcular_volume(): float
   + descricao(): str
+  + descrever_registro(series, repeticoes, carga_kg): str
 }
 
 class FichaTreino {
@@ -126,8 +129,8 @@ RelatorioEvolucao ..> Aluno : usa
 
 note bottom of Exercicio
   Polimorfismo: cada subclasse
-  sobrescreve calcular_volume()
-  e descricao().
+  sobrescreve calcular_volume(),
+  descricao() e descrever_registro().
 end note
 
 note top of Pessoa

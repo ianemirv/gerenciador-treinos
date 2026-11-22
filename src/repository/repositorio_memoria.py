@@ -1,8 +1,12 @@
 """RepositorioMemoria: guarda alunos e instrutores enquanto o programa roda.
 
 Nível 2: os dados ficam só na memória (listas) e somem ao fechar o programa.
-No nível 3 vai existir um Repositorio com SQLite com os mesmos métodos,
-assim o menu não precisa mudar.
+Nível 3: o RepositorioSQLite (repository/banco.py) HERDA desta classe e, em cada
+método que altera os dados, chama a versão daqui (super()) e depois grava no banco.
+
+Por isso toda alteração feita pelo menu passa por um método do repositório
+(adicionar, atualizar, remover...). Assim o menu funciona igual com os dois
+repositórios (POLIMORFISMO).
 """
 
 from models.pessoa import Aluno, Instrutor
@@ -25,6 +29,13 @@ class RepositorioMemoria:
     @property
     def instrutores(self):
         return list(self._instrutores)
+
+    def descricao(self):
+        """Onde os dados ficam guardados (mostrado ao sair do programa)."""
+        return "Os dados ficaram só na memória e foram apagados."
+
+    def fechar(self):
+        """Na memória não há nada para fechar."""
 
     # ---------- CPF ----------
     def cpf_em_uso(self, cpf):
@@ -49,6 +60,14 @@ class RepositorioMemoria:
                 return aluno
         return None
 
+    def atualizar_aluno(self, aluno):
+        """Chamado depois de editar nome, idade, peso ou altura.
+
+        Na memória o próprio objeto já foi alterado, então não há nada a fazer.
+        """
+        if aluno not in self._alunos:
+            raise ValueError("Aluno não encontrado.")
+
     def remover_aluno(self, cpf):
         aluno = self.buscar_aluno(cpf)
         if aluno is None:
@@ -58,6 +77,7 @@ class RepositorioMemoria:
         if instrutor is not None:
             instrutor.desvincular_aluno(aluno.cpf)
         self._alunos.remove(aluno)
+        return aluno
 
     # ---------- instrutores ----------
     def adicionar_instrutor(self, instrutor):
@@ -79,6 +99,7 @@ class RepositorioMemoria:
             raise ValueError("Instrutor não encontrado.")
         # Associação: os alunos continuam existindo sem o instrutor.
         self._instrutores.remove(instrutor)
+        return instrutor
 
     def instrutor_do_aluno(self, aluno):
         """Cada aluno é acompanhado por no máximo um instrutor."""
@@ -92,3 +113,33 @@ class RepositorioMemoria:
         if atual is not None:
             raise ValueError(f"{aluno.nome} já é acompanhado por {atual.nome}.")
         instrutor.vincular_aluno(aluno)
+
+    def desvincular(self, instrutor, aluno):
+        instrutor.desvincular_aluno(aluno.cpf)
+
+    # ---------- fichas ----------
+    def adicionar_ficha(self, aluno, ficha):
+        """Liga a ficha ao aluno (com os exercícios que ela já tiver)."""
+        aluno.adicionar_ficha(ficha)
+
+    def remover_ficha(self, aluno, ficha):
+        if any(sessao.ficha is ficha for sessao in aluno.sessoes):
+            raise ValueError("Essa ficha já tem sessões registradas e não pode ser excluída.")
+        aluno.remover_ficha(ficha.nome)
+
+    # ---------- exercícios ----------
+    def salvar_exercicio(self, ficha, exercicio):
+        """Chamado logo depois de a ficha criar um exercício novo.
+
+        COMPOSIÇÃO: quem cria o exercício é a ficha (ficha.adicionar_*).
+        Na memória ele já está dentro da ficha, então não há nada a fazer.
+        """
+        if exercicio not in ficha.exercicios:
+            raise ValueError("O exercício precisa ser criado pela ficha.")
+
+    def remover_exercicio(self, ficha, exercicio):
+        ficha.remover_exercicio(exercicio.nome)
+
+    # ---------- sessões ----------
+    def registrar_sessao(self, aluno, sessao):
+        aluno.registrar_sessao(sessao)

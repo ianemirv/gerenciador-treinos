@@ -1,15 +1,19 @@
-"""Dados de exemplo para demonstrar o menu sem digitar tudo do zero."""
+"""Dados de exemplo para demonstrar o menu sem digitar tudo do zero.
+
+Tudo passa pelo repositório, então no nível 3 os dados vão para o banco.
+"""
 
 from models.ficha_treino import FichaTreino
 from models.pessoa import Aluno, Instrutor
 from models.sessao_treino import SessaoTreino
 
 CPF_INSTRUTOR = "11122233344"
+CPFS_EXEMPLO = [CPF_INSTRUTOR, "55566677788", "22233344455"]
 
 
 def carregar_dados_exemplo(repositorio):
     """Cria 1 instrutor, 2 alunos, fichas e sessões. Devolve False se já existirem."""
-    if repositorio.cpf_em_uso(CPF_INSTRUTOR):
+    if any(repositorio.cpf_em_uso(cpf) for cpf in CPFS_EXEMPLO):
         return False
 
     carla = Instrutor("Carla Souza", CPF_INSTRUTOR, 32, "012345-G/DF")
@@ -25,13 +29,13 @@ def carregar_dados_exemplo(repositorio):
     treino_a.adicionar_musculacao("Tríceps corda", "Tríceps", 3, 12, 20)
     treino_a.adicionar_cardio("Esteira", 20, 3)
     treino_a.adicionar_isometrico("Prancha", "Abdômen", 3, 45)
-    joao.adicionar_ficha(treino_a)
+    repositorio.adicionar_ficha(joao, treino_a)   # salva a ficha com os exercícios
 
     treino_b = FichaTreino("Treino B")
     treino_b.adicionar_musculacao("Agachamento", "Pernas", 4, 10, 60)
     treino_b.adicionar_musculacao("Leg press", "Pernas", 4, 12, 120)
     treino_b.adicionar_cardio("Bicicleta", 15)
-    joao.adicionar_ficha(treino_b)
+    repositorio.adicionar_ficha(joao, treino_b)
 
     # (data, ficha, carga do exercício principal) — a carga sobe ao longo das semanas
     historico = [
@@ -51,10 +55,10 @@ def carregar_dados_exemplo(repositorio):
             sessao.registrar_exercicio("Agachamento", 4, 10, carga)
             sessao.registrar_exercicio("Leg press", 4, 12, 120)
             sessao.registrar_exercicio("Bicicleta", 1, 15)
-        joao.registrar_sessao(sessao)
+        repositorio.registrar_sessao(joao, sessao)
 
     treino_maria = FichaTreino("Treino A")
     treino_maria.adicionar_musculacao("Cadeira extensora", "Quadríceps", 3, 12, 25)
     treino_maria.adicionar_cardio("Elíptico", 25, 4)
-    maria.adicionar_ficha(treino_maria)
+    repositorio.adicionar_ficha(maria, treino_maria)
     return True

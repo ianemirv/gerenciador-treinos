@@ -1,12 +1,12 @@
+"""Testes do repositório.
+
+O fixture "repo" (tests/conftest.py) roda cada teste com o RepositorioMemoria
+e com o RepositorioSQLite: os dois precisam se comportar igual.
+"""
+
 import pytest
 
 from models.pessoa import Aluno, Instrutor
-from repository.repositorio_memoria import RepositorioMemoria
-
-
-@pytest.fixture
-def repo():
-    return RepositorioMemoria()
 
 
 @pytest.fixture

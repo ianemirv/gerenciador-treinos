@@ -54,6 +54,14 @@ class SessaoTreino:
         exercicio = self.ficha.buscar_exercicio(nome_exercicio)
         if exercicio is None:
             raise ValueError(f"'{nome_exercicio}' não faz parte da {self.ficha.nome}.")
+        return self.adicionar_registro(exercicio, series, repeticoes, carga_kg)
+
+    def adicionar_registro(self, exercicio, series, repeticoes, carga_kg=0):
+        """Cria o registro direto a partir do objeto exercício.
+
+        Usado ao carregar do banco (nível 3): um exercício que já saiu da
+        ficha continua aparecendo no histórico das sessões antigas.
+        """
         registro = RegistroExercicio(exercicio, series, repeticoes, carga_kg)
         self._registros.append(registro)
         return registro

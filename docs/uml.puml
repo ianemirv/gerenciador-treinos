@@ -1,5 +1,5 @@
 @startuml
-' Diagrama de classes — Gerenciador de Treinos (nível 1)
+' Diagrama de classes — Gerenciador de Treinos (níveis 1 a 3)
 ' Para editar: cole este texto em https://www.plantuml.com/plantuml
 
 skinparam classAttributeIconSize 0
@@ -85,6 +85,7 @@ class SessaoTreino {
   + observacao: str
   - _registros: list[RegistroExercicio]
   + registrar_exercicio(nome, series, repeticoes, carga_kg): RegistroExercicio
+  + adicionar_registro(exercicio, series, repeticoes, carga_kg): RegistroExercicio
   + calcular_volume_total(): float
   + resumo(): str
 }
@@ -105,7 +106,43 @@ class RelatorioEvolucao {
   + classificar_imc(aluno): tuple
 }
 
+class RepositorioMemoria {
+  - _alunos: list[Aluno]
+  - _instrutores: list[Instrutor]
+  + adicionar_aluno(aluno)
+  + atualizar_aluno(aluno)
+  + remover_aluno(cpf)
+  + adicionar_instrutor(instrutor)
+  + remover_instrutor(cpf)
+  + vincular(instrutor, aluno)
+  + desvincular(instrutor, aluno)
+  + adicionar_ficha(aluno, ficha)
+  + remover_ficha(aluno, ficha)
+  + salvar_exercicio(ficha, exercicio)
+  + remover_exercicio(ficha, exercicio)
+  + registrar_sessao(aluno, sessao)
+  + descricao(): str
+  + fechar()
+}
+
+class RepositorioSQLite {
+  + caminho: str
+  + conexao: sqlite3.Connection
+  - _ids: dict
+  - _carregar()
+  - _montar_exercicio(ficha, linha): Exercicio
+  - _inserir_exercicio(ficha, exercicio)
+  + (sobrescreve os métodos que alteram dados)
+}
+
+class MenuTerminal {
+  + repo: RepositorioMemoria
+  + relatorio: RelatorioEvolucao
+  + executar()
+}
+
 ' Herança
+RepositorioMemoria <|-- RepositorioSQLite
 Pessoa <|-- Aluno
 Pessoa <|-- Instrutor
 Exercicio <|-- ExercicioMusculacao
@@ -123,6 +160,11 @@ Aluno "1" --> "0..*" SessaoTreino : fez
 SessaoTreino "0..*" --> "1" FichaTreino : realizou
 RegistroExercicio "0..*" --> "1" Exercicio : refere-se a
 
+RepositorioMemoria "1" --> "0..*" Aluno : guarda
+RepositorioMemoria "1" --> "0..*" Instrutor : guarda
+MenuTerminal --> RepositorioMemoria : usa
+MenuTerminal --> RelatorioEvolucao : usa
+
 ' Dependência
 RelatorioEvolucao ..> SessaoTreino : usa
 RelatorioEvolucao ..> Aluno : usa
@@ -131,6 +173,14 @@ note bottom of Exercicio
   Polimorfismo: cada subclasse
   sobrescreve calcular_volume(),
   descricao() e descrever_registro().
+end note
+
+note right of RepositorioSQLite
+  Nível 3: cada método chama super()
+  (altera os objetos) e depois grava
+  no SQLite (INSERT, UPDATE, DELETE).
+  O menu funciona igual com os dois
+  repositórios (polimorfismo).
 end note
 
 note top of Pessoa

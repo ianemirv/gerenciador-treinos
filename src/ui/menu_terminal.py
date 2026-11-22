@@ -1,7 +1,10 @@
-"""Menu do terminal (nível 2): acessa todos os modelos e funcionalidades.
+"""Menu do terminal: acessa todos os modelos e funcionalidades.
 
-Os dados ficam no RepositorioMemoria e somem ao fechar o programa
-(o banco de dados entra no nível 3).
+O menu recebe um repositório e TODA alteração passa por ele
+(adicionar, atualizar, remover...):
+- RepositorioMemoria (nível 2): os dados somem ao fechar o programa.
+- RepositorioSQLite (nível 3): cada alteração é salva na hora no banco.
+POLIMORFISMO: o menu é o mesmo para os dois, só muda o repositório.
 """
 
 from datetime import date
@@ -29,7 +32,7 @@ def barra(valor, maximo, largura=25):
 class MenuTerminal:
 
     def __init__(self, repositorio, pausar=True):
-        self.repo = repositorio            # onde os alunos e instrutores ficam guardados
+        self.repo = repositorio            # onde os dados ficam guardados (memória ou banco)
         self.relatorio = RelatorioEvolucao()
         self.pausar = pausar               # nos testes, desligamos a pausa
 
@@ -178,8 +181,7 @@ class MenuTerminal:
             print("  0 - Sair")
             opcao = self.ler_opcao(len(opcoes))
             if opcao == 0:
-                print("\nAté o próximo treino! "
-                      "(Os dados não foram salvos: o banco de dados entra no nível 3.)")
+                print(f"\nAté o próximo treino! {self.repo.descricao()}")
                 return
             _, funcao, pausar_depois = opcoes[opcao - 1]
             funcao()
@@ -228,6 +230,7 @@ class MenuTerminal:
         self.editar_campo(aluno, "idade", "Idade")
         self.editar_campo(aluno, "peso_kg", "Peso (kg)")
         self.editar_campo(aluno, "altura_m", "Altura (m)")
+        self.repo.atualizar_aluno(aluno)   # salva as alterações
         print(f"\n✓ Dados atualizados: {aluno.apresentar()}")
 
     def excluir_aluno(self):
@@ -293,7 +296,7 @@ class MenuTerminal:
                               f"{instrutor.nome} não acompanha nenhum aluno.")
         if aluno is None:
             return
-        instrutor.desvincular_aluno(aluno.cpf)
+        self.repo.desvincular(instrutor, aluno)
         print(f"✓ {aluno.nome} foi desvinculado de {instrutor.nome}.")
 
     def excluir_instrutor(self):
@@ -323,7 +326,7 @@ class MenuTerminal:
 
         def validar(texto):
             ficha = FichaTreino(texto)
-            aluno.adicionar_ficha(ficha)   # lança erro se o nome já existir
+            self.repo.adicionar_ficha(aluno, ficha)   # lança erro se o nome já existir
             return ficha
 
         ficha = self.ler_valor("Nome da ficha (ex.: Treino A): ", validar)
@@ -352,7 +355,7 @@ class MenuTerminal:
             print("  ✗ Erro: essa ficha já tem sessões registradas e não pode ser excluída.")
             return
         if self.confirmar(f"Excluir {ficha.nome}?"):
-            aluno.remover_ficha(ficha.nome)
+            self.repo.remover_ficha(aluno, ficha)
             print(f"✓ {ficha.nome} foi excluída.")
 
     # =====================================================================
@@ -407,6 +410,7 @@ class MenuTerminal:
             series = self.ler_inteiro("Séries: ", "séries")
             tempo = self.ler_numero("Tempo de cada série (s): ", "tempo (s)")
             exercicio = ficha.adicionar_isometrico(nome, grupo, series, tempo)
+        self.repo.salvar_exercicio(ficha, exercicio)
         print(f"✓ Adicionado: {exercicio.descricao()} | volume {exercicio.calcular_volume():g}")
 
     def remover_exercicio(self, ficha):
@@ -415,7 +419,7 @@ class MenuTerminal:
                                   "A ficha não tem exercícios.")
         if exercicio is None:
             return
-        ficha.remover_exercicio(exercicio.nome)
+        self.repo.remover_exercicio(ficha, exercicio)
         print(f"✓ {exercicio.nome} foi removido de {ficha.nome}.")
 
     # =====================================================================
@@ -483,7 +487,7 @@ class MenuTerminal:
         if not sessao.registros:
             print("\nNenhum exercício feito: a sessão não foi registrada.")
             return
-        aluno.registrar_sessao(sessao)
+        self.repo.registrar_sessao(aluno, sessao)
         print("\n✓ Sessão registrada:")
         print(sessao.resumo())
 

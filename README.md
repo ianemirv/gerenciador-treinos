@@ -11,6 +11,9 @@ Requisito: Python 3.10 ou mais novo.
 ```bash
 pip install -r requirements.txt
 
+# interface gráfica (nível 4)
+python src/gui.py
+
 # menu do terminal (os dados ficam salvos em treinos.db)
 python src/main.py
 
@@ -21,9 +24,42 @@ python src/ver_banco.py
 python -m pytest -v
 ```
 
-O banco `treinos.db` é criado sozinho na pasta do projeto na primeira vez que o menu
-abre. Para começar do zero, é só apagar esse arquivo. O SQLite (`sqlite3`) já vem com o
-Python, não precisa instalar nada.
+O banco `treinos.db` é criado sozinho na pasta do projeto na primeira vez que o programa
+abre. Para começar do zero, é só apagar esse arquivo. O SQLite (`sqlite3`) e o Tkinter já
+vêm com o Python, não precisa instalar nada além do `pytest`. A interface gráfica e o menu
+do terminal usam o mesmo banco.
+
+## Interface gráfica (nível 4)
+
+Feita com **Tkinter + ttk** (tema `clam`), com estilos personalizados: paleta de cores
+própria (laranja e grafite), menu lateral escuro, botões com cores por função
+(principal, secundário, excluir), tabelas com cabeçalho escuro e linhas coloridas por tipo de
+exercício, e gráficos desenhados à mão num `Canvas`.
+
+| Tela | O que faz |
+| --- | --- |
+| Início | totais (alunos, instrutores, fichas, sessões), atalhos e botão de dados de exemplo |
+| Alunos | tabela com busca; cadastrar, editar (duplo clique) e excluir |
+| Instrutores | cadastrar e excluir; vincular e desvincular alunos |
+| Fichas e exercícios | criar e excluir fichas; adicionar exercícios de musculação, cardio ou isométrico; volume de cada um e total |
+| Registrar sessão | marcar os exercícios feitos, com os campos de cada tipo já preenchidos com o planejado |
+| Histórico | sessões do aluno em ordem de data e os detalhes de cada uma |
+| Relatórios | gráfico de evolução de carga, gráfico de volume por semana e IMC com régua de faixas |
+
+Erros (campo vazio, número negativo, CPF repetido, data inválida…) aparecem numa janela de
+aviso, e o formulário continua aberto para corrigir. Cada ação bem-sucedida aparece em verde
+na barra de status.
+
+Como o código está organizado (`src/ui/gui/`):
+
+- `ControladorGUI` (`controlador.py`) é a parte que **não** usa Tkinter: recebe os textos
+  digitados, cria os objetos e chama o repositório. Por isso é testado com pytest
+  (`tests/test_controlador_gui.py`), com os dois repositórios.
+- `TelaBase` (`tela_base.py`) é uma classe **abstrata**; as 7 telas **herdam** dela e
+  implementam `montar()` e `atualizar()`. A `JanelaPrincipal` chama `tela.atualizar()` sem
+  saber qual tela é (**polimorfismo**).
+- `estilos.py` guarda as cores, fontes e estilos; `componentes.py` tem as peças reutilizadas
+  (tabela, caixa de escolha, formulário, gráfico de barras).
 
 ## Menu do terminal (níveis 2 e 3)
 
@@ -89,6 +125,7 @@ O código-fonte do diagrama está em `docs/uml.puml` (PlantUML).
 
 ```
 src/
+├── gui.py                        # ponto de entrada: interface gráfica (nível 4)
 ├── main.py                       # ponto de entrada: abre o menu com o banco
 ├── ver_banco.py                  # mostra o conteúdo das tabelas do banco
 ├── models/
@@ -104,7 +141,14 @@ src/
 │   └── banco.py                  # RepositorioSQLite: guarda tudo no SQLite (nível 3)
 └── ui/
     ├── menu_terminal.py          # menu do terminal
-    └── dados_exemplo.py          # dados prontos para demonstração
-tests/                            # testes com pytest (modelos, repositórios, banco e menu)
+    ├── dados_exemplo.py          # dados prontos para demonstração
+    └── gui/                      # interface gráfica (nível 4)
+        ├── janela_principal.py   # janela com menu lateral e troca de telas
+        ├── controlador.py        # ControladorGUI: lógica das telas, sem Tkinter
+        ├── estilos.py            # cores, fontes e estilos ttk
+        ├── componentes.py        # Tabela, Seletor, JanelaFormulario, GraficoBarras
+        ├── tela_base.py          # TelaBase (abstrata)
+        └── tela_*.py             # as 7 telas
+tests/                            # testes com pytest (modelos, repositórios, banco, menu e GUI)
 docs/                             # diagrama UML
 ```
